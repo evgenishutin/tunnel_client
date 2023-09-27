@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"os"
 	"ssh-proxy-app/internal/service"
 	"ssh-proxy-app/internal/usecase"
 	"ssh-proxy-app/pkg/helpers"
@@ -19,8 +17,8 @@ func Run() {
 	sshProxyService := service.NewSSHProxyService()
 	sshProxyUseCase := usecase.NewProxySSHUseCase(*sshProxyService)
 
-	pid := os.Getpid()
-	fmt.Printf("PID текущего процесса: %d\n", pid)
+	// pid := os.Getpid()
+	// fmt.Printf("PID текущего процесса: %d\n", pid)
 
 	myWindow := myApp.NewWindow("SSH Proxy App")
 	myWindow.Resize(fyne.NewSize(400, 300))
@@ -38,7 +36,7 @@ func Run() {
 			username := usernameEntry.Text
 			host := hostEntry.Text
 			if username == "" {
-				fmt.Println("Username cannot be empty")
+				// fmt.Println("Username cannot be empty")
 				validationLabel.SetText("Username cannot be empty")
 				return
 			} else {
@@ -46,7 +44,7 @@ func Run() {
 			}
 			if !helpers.IsValidIPv4(host) {
 				validationLabel.SetText("is not a valid IPv4 address.")
-				fmt.Println(host, "is not a valid IPv4 address.")
+				// fmt.Println(host, "is not a valid IPv4 address.")
 			} else {
 				validationLabel.SetText("")
 			}
@@ -55,14 +53,16 @@ func Run() {
 				paramsSSH := sshProxyUseCase.SetParams(username, host)
 				err := sshProxyUseCase.StartProxy(*paramsSSH)
 				if err != nil {
-					fmt.Println("Error starting SSH Proxy:", err)
+					validationLabel.SetText("Error starting SSH Proxy:")
+					// fmt.Println("Error starting SSH Proxy:", err)
 				}
 			}
 			myWindow.SetTitle("turning on the tunnel")
 		} else {
 			err := sshProxyUseCase.StopProxy()
 			if err != nil {
-				fmt.Println("Error stoping SSH Proxy:", err)
+				validationLabel.SetText("Error stoping SSH Proxy:")
+				// fmt.Println("Error stoping SSH Proxy:", err)
 			}
 			myWindow.SetTitle("turning off the tunnel")
 		}

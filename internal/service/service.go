@@ -1,8 +1,6 @@
 package service
 
 import (
-	"bytes"
-	"fmt"
 	"log"
 	"os/exec"
 
@@ -17,17 +15,17 @@ func NewSSHProxyService() *SSHProxyService {
 
 func (r *SSHProxyService) StartProxy(params domain.ProxySSH) (*exec.Cmd, error) {
 	cmd := exec.Command("ssh", "-N", "-D", "1080", params.Username+"@"+params.Host) // "-f",
-	var out bytes.Buffer
-	cmd.Stdout = &out
+	// var out bytes.Buffer
+	// cmd.Stdout = &out
 	err := cmd.Start()
 	if err != nil {
-		fmt.Println("ERROR:", err)
+		// fmt.Println("ERROR:", err)
 		log.Fatal(err)
 		return &exec.Cmd{}, err
 	}
 
-	pid := cmd.Process.Pid
-	fmt.Printf("PID процесса SSH: %d\n", pid)
+	// pid := cmd.Process.Pid
+	// fmt.Printf("PID процесса SSH: %d\n", pid)
 
 	// cmd.Wait()
 	return cmd, nil
