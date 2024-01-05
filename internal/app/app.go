@@ -1,9 +1,10 @@
 package app
 
 import (
-	"ssh-proxy-app/internal/service"
+	config "ssh-proxy-app/config"
 	"ssh-proxy-app/internal/usecase"
-	"ssh-proxy-app/pkg/helpers"
+
+	proxy "ssh-proxy-app/pkg/proxy"
 
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
@@ -11,69 +12,26 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func Run() {
+func Run(conf config.Config) {
 	myApp := fyneApp.New()
-
-	sshProxyService := service.NewSSHProxyService()
-	sshProxyUseCase := usecase.NewProxySSHUseCase(*sshProxyService)
+	newProxy := proxy.NewProxy(conf)
+	proxyUseCase := usecase.NewProxyUseCase(newProxy)
 
 	// pid := os.Getpid()
 	// fmt.Printf("PID текущего процесса: %d\n", pid)
 
-	myWindow := myApp.NewWindow("SSH Proxy App")
+	myWindow := myApp.NewWindow("Proxy tunnel")
 	myWindow.Resize(fyne.NewSize(400, 300))
-
-	usernameEntry := widget.NewEntry()
-	usernameEntry.SetPlaceHolder("Username")
-
-	hostEntry := widget.NewEntry()
-	hostEntry.SetPlaceHolder("Ip address (e.g., 127.0.0.1)")
-
 	validationLabel := widget.NewLabel("")
 
-	sshButton := widget.NewCheck("Start SSH Proxy", func(checked bool) {
-		if checked {
-			username := usernameEntry.Text
-			host := hostEntry.Text
-			if username == "" {
-				// fmt.Println("Username cannot be empty")
-				validationLabel.SetText("Username cannot be empty")
-				return
-			} else {
-				validationLabel.SetText("")
-			}
-			if !helpers.IsValidIPv4(host) {
-				validationLabel.SetText("is not a valid IPv4 address.")
-				// fmt.Println(host, "is not a valid IPv4 address.")
-			} else {
-				validationLabel.SetText("")
-			}
-
-			if username != "" && helpers.IsValidIPv4(host) {
-				paramsSSH := sshProxyUseCase.SetParams(username, host)
-				err := sshProxyUseCase.StartProxy(*paramsSSH)
-				if err != nil {
-					validationLabel.SetText("Error starting SSH Proxy:")
-					// fmt.Println("Error starting SSH Proxy:", err)
-				}
-			}
-			myWindow.SetTitle("turning on the tunnel")
-		} else {
-			err := sshProxyUseCase.StopProxy()
-			if err != nil {
-				validationLabel.SetText("Error stoping SSH Proxy:")
-				// fmt.Println("Error stoping SSH Proxy:", err)
-			}
-			myWindow.SetTitle("turning off the tunnel")
-		}
+	startButton := widget.NewButton("Connect", func() {
+		proxyUseCase.StartProxy()
 	})
 
 	myWindow.SetContent(container.NewVBox(
-		widget.NewLabel("SSH Proxy App"),
-		usernameEntry,
-		hostEntry,
+		widget.NewLabel("Proxy tunnel"),
 		validationLabel,
-		sshButton,
+		startButton,
 	))
 
 	myWindow.ShowAndRun()

@@ -1,44 +1,35 @@
 package usecase
 
 import (
-	"os"
-	"os/exec"
+	"log"
+	"net"
 
-	"ssh-proxy-app/internal/domain"
-	"ssh-proxy-app/internal/service"
+	proxy "ssh-proxy-app/pkg/proxy"
 )
 
-type ProxySSHUseCase struct {
-	service service.SSHProxyService
-	process *exec.Cmd
+type ProxyUseCase struct {
+	service proxy.IProxy
 }
 
-func NewProxySSHUseCase(serv service.SSHProxyService) *ProxySSHUseCase {
-	return &ProxySSHUseCase{
-		service: serv,
+func NewProxyUseCase(service proxy.IProxy) *ProxyUseCase {
+	return &ProxyUseCase{
+		service: service,
 	}
 }
 
-func (uc *ProxySSHUseCase) SetParams(username, host string) *domain.ProxySSH {
-	return &domain.ProxySSH{
-		Username: username,
-		Host:     host,
-	}
-}
-
-func (uc *ProxySSHUseCase) StartProxy(params domain.ProxySSH) error {
-	cmd, err := uc.service.StartProxy(params)
-	uc.process = cmd
+func (uc *ProxyUseCase) StartProxy() {
+	err := uc.service.Connection()
 	if err != nil {
-		return err
+		log.Println(err)
+		return
 	}
-	return nil
 }
 
-func (uc *ProxySSHUseCase) StopProxy() error {
-	proc := uc.process.Process
-	if err := proc.Signal(os.Interrupt); err != nil {
-		return err
-	}
-	return nil
+func (uc *ProxyUseCase) StopProxy() {
+	// TO DO
+}
+
+func (uc *ProxyUseCase) IsValidIPv4(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To4() != nil
 }
